@@ -8,7 +8,13 @@ Actions = {
     'VIEW_WORKITEM': 'com.ibm.team.workitem.viewWorkItem',
 
     # com.ibm.team.workitem.viewQueries
-    'VIEW_QUERIES': 'com.ibm.item.workitem.viewQueries'
+    'VIEW_QUERIES': 'com.ibm.team.workitem.viewQueries',
+
+    # com.ibm.team.workitem.viewQueries
+    'VIEW_OWNED_QUERIES': 'com.ibm.team.workitem.viewQueries&tab=owned',
+
+    # com.ibm.team.workitem.viewQueries&tab=shared
+    'VIEW_SHARED_QUERIES': 'com.ibm.team.workitem.viewQueries&tab=shared'
 }
 
 Tabs = {
@@ -27,6 +33,12 @@ class URLBuilder():
         actionUrl = self.getUrl(projectName, 'VIEW_WORKITEM')
 
         return '{}&id={}&tab={}'.format(actionUrl, workItemId, tab)
+
+
+    def getProjectQueryUrl(self, projectName, queryName, shared = True):
+        if shared is True:
+            return  self.getUrl(projectName, 'VIEW_SHARED_QUERIES')
+        return self.getUrl(projectName, 'VIEW_OWNED_QUERIES')
 
     def getUrl(self, projectName, action = None):
 

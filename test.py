@@ -31,7 +31,12 @@ try:
     for info in infos:
         print(info.fileName, info.uploader, info.attachmentId, info.size, flush=True)
         url = info.href
-        downloadFileFromUrl(driver, url,'dest')
+        #downloadFileFromUrl(driver, url,'dest')
+    workItemList = driver.retrieveSavedQueryWorkItemList('IPF-3OTV_SW_Project', '自動同期用', shared = True)
+    for workItem in workItemList:
+        print(workItem.get('タイプ'))
+        print(workItem.get('コメント'))
+
 
 except TimeoutException as e:
     print(e)

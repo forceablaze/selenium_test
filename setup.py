@@ -13,7 +13,7 @@ install_requires = [
 
 setuptools.setup(
     name="somed_rtc",
-    version="0.2.4",
+    version="0.2.5.3",
     author="Shih-Po Wang",
     author_email="sibo.wang@ot.olympus.co.jp",
     description="The Python binding Mantis SOAP API",

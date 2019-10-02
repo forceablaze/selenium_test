@@ -5,9 +5,14 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+
+from selenium.common.exceptions import StaleElementReferenceException
+
 from somed_rtc.actions import URLBuilder
 from somed_rtc.actions import Tabs
+from somed_rtc.workitem import WorkItem
 import time, re
+import csv
 
 import win32gui
 import win32con
@@ -99,6 +104,56 @@ class Driver():
         saveButton = self.driver.find_element_by_xpath('//button[text()="保存"]')
         saveButton.click()
 
+    # queryName: 照会
+    # This method will download {queryName}.csv to current path
+    def downloadSavedQueryWorkItemCSVFile(self, projectName, queryName, shared = True):
+        # goto specific queryName page
+        element = self.goto(urlBuilder.getProjectQueryUrl(
+                        projectName, queryName, shared),
+                            ec = EC.presence_of_element_located(
+                                (By.LINK_TEXT, queryName))
+                )
+        queryPageUrl = element.get_attribute('href')
+
+        downloadCSVElementXPathString = '//a[@title="スプレッドシート (.csv) としてダウンロード"]'
+        csvDownloadElement = self.goto(queryPageUrl,
+                ec = EC.presence_of_element_located(
+                    (By.XPATH, downloadCSVElementXPathString))
+            )
+
+        try:
+            csvDownloadElement.click()
+        except StaleElementReferenceException as e:
+            print(e)
+            print('re-locate download button')
+            # re-locate download button then click
+            button = self.driver.find_element_by_xpath(downloadCSVElementXPathString)
+            button.click()
+
+        p =  Path('{}.csv'.format(queryName))
+
+        # wait for file ready
+        while not p.exists():
+            time.sleep(1)
+
+        return p.resolve()
+
+    def retrieveSavedQueryWorkItemList(self, projectName, queryName, shared = True):
+
+        filePath = self.downloadSavedQueryWorkItemCSVFile(projectName, queryName, shared)
+        workItemList = []
+        with open(filePath, encoding = 'utf-16') as csvfile:
+            reader =  csv.reader(csvfile, delimiter = '\t', quotechar = '\"')
+
+            # ignore the first row (header row)
+            it = iter(reader)
+            header = next(it)
+            for row in it:
+                workItemList.append(WorkItem(header, row))
+
+        return workItemList
+
+
     # return elements with <a> tag
     def retrieveWorkItemAttachmentInfos(self, projectName, workItemId):
         infos = []
@@ -152,10 +207,21 @@ class Driver():
 
 class ChromeDriver(Driver):
 
-    def __init__(self, driver_path = None):
+    def __init__(self, driver_path = None, download_path = '.'):
+
+        options = webdriver.ChromeOptions()
+
+        # set the default download path
+        downloadPath = str(Path(download_path).resolve())
+        prefs = {
+            "download.default_directory": downloadPath,
+        }
+        options.add_experimental_option('prefs', prefs)
 
         if driver_path is not None:
-            driver = webdriver.Chrome(executable_path = driver_path)
+            driver = webdriver.Chrome(
+                    chrome_options = options,
+                    executable_path = driver_path)
         else:
             driver = webdriver.Chrome()
 
