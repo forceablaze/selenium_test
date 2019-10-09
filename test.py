@@ -37,6 +37,8 @@ try:
         print(workItem.get('タイプ'))
         print(workItem.get('コメント'))
 
+    driver.addWorkItemSubscriber('OlySandBox', 8050, '王 詩博')
+
 
 except TimeoutException as e:
     print(e)

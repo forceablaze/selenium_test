@@ -74,6 +74,39 @@ class Driver():
         return element.text
 
 
+    def addWorkItemSubscriber(self, projectName, workItemId, userName):
+
+        element = self.goto(
+                    urlBuilder.getProjectWorkItemUrl(
+                        projectName, workItemId, Tabs['WORKITEM_TAB_LINKS']),
+
+                    ec = EC.presence_of_element_located(
+                        (By.XPATH, '//span[text()="サブスクライバー"]'))
+                )
+
+
+        addSubscriberLink = self.driver.find_element_by_xpath('//div[@class="AnchorCommand"]')
+        addSubscriberLink.click()
+
+        # sleep 1 second for dailog to appear
+        time.sleep(1)
+
+        # input user name
+        searchText = self.driver.find_element_by_xpath('//input[@class="searchText"]')
+        searchText.send_keys(userName)
+        time.sleep(3)
+
+        # click the option from user selector
+        optionXPath = '//select[@dojoattachpoint="userSelector"]/option'
+        option = self.driver.find_element_by_xpath(optionXPath)
+        option.click()
+
+        okButton = self.driver.find_element_by_xpath('//button[text()="OK"]')
+        okButton.click()
+
+        saveButton = self.driver.find_element_by_xpath('//button[text()="保存"]')
+        saveButton.click()
+
     def uploadFileToWorkItem(self, projectName, workItemId, filePath):
         element = self.goto(
                     urlBuilder.getProjectWorkItemUrl(
